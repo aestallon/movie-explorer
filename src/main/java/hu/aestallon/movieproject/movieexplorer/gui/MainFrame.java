@@ -7,21 +7,18 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 
 public class MainFrame extends JFrame {
 
-    private final MovieDao movieDao;
     private final MovieTableModel movieTableModel;
     private final JTable movieTable;
-    private final TablePanel tablePanel;
-    private final ControlPanel controlPanel;
 
     public MainFrame(MovieDao movieDao) {
-        this.movieDao = movieDao;
         this.movieTableModel = new MovieTableModel(movieDao);
         this.movieTable = new JTable(movieTableModel);
-        this.tablePanel = new TablePanel();
-        this.controlPanel = new ControlPanel();
+        TablePanel tablePanel = new TablePanel();
+        ControlPanel controlPanel = new ControlPanel();
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setTitle("Movie Explorer");
@@ -36,6 +33,7 @@ public class MainFrame extends JFrame {
         setVisible(true);
     }
 
+    // The JPanel containing the table displaying movie data.
     private class TablePanel extends JPanel {
 
         private TablePanel() {
@@ -58,37 +56,12 @@ public class MainFrame extends JFrame {
         }
     }
 
-    private class ControlPanel extends JPanel {
-
-        private ControlPanel() {
-            this.setSize(100, 400);
-            this.setBackground(new Color(234, 100, 81));
-            this.setLocation(600, 0);
-
-            JButton removeBtn = new JButton("RemoveYear");
-            removeBtn.addActionListener(e ->
-                    movieTableModel.setDisplayedAttributes(
-                            MovieAttribute.TITLE,
-                            MovieAttribute.DIRECTOR
-                    )
-            );
-            this.add(removeBtn);
-
-            JButton addBtn = new JButton("AddYear");
-            addBtn.addActionListener(e ->
-                    movieTableModel.setDisplayedAttributes(
-                            MovieAttribute.TITLE,
-                            MovieAttribute.RELEASE_YEAR,
-                            MovieAttribute.DIRECTOR
-                    )
-            );
-            this.add(addBtn);
-        }
-    }
-
+    // The dialog window which appears when a movie is selected from the
+    // table.
     private class MovieInfoDialog extends JFrame {
 
         private MovieInfoDialog(Movie movie) {
+            // TODO: Format data elements.
             String movieText = String.format("""
                     <html>
                         <h1>%s</h1>
@@ -119,8 +92,116 @@ public class MainFrame extends JFrame {
                     movie.getMetaScore(), movie.getVotecount(), movie.getPosterLink()
             );
             this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+            this.setTitle(movie.getTitle());
             JLabel label = new JLabel(movieText);
             this.add(label);
+            this.pack();
+            setLocationRelativeTo(MainFrame.this);
+            this.setVisible(true);
+        }
+    }
+
+    // The JPanel containing the control buttons (Sort, Filter, CRUD)
+    private class ControlPanel extends JPanel {
+
+        private ControlPanel() {
+            this.setSize(100, 400);
+            this.setBackground(new Color(234, 100, 81));
+            this.setLocation(600, 0);
+
+            // Show/hide attributes
+            JButton showAndHideBtn = new JButton("Display");
+            showAndHideBtn.addActionListener(e -> new ShowAndHideDialog());
+            this.add(showAndHideBtn);
+
+            // Filter movies
+            // TODO: Add filter button, filter dialog window, with user input validation.
+
+            // Add button
+            // Delete button
+            // Update button
+
+        }
+    }
+
+    // JFrame containing checkboxes to let the user change which
+    // columns should appear.
+    private class ShowAndHideDialog extends JFrame {
+
+        private ShowAndHideDialog() {
+            this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+            this.setTitle("Displayed Attibutes");
+
+            this.setLayout(new GridLayout(5, 2));
+            JCheckBox directorCB = new JCheckBox(
+                    MovieAttribute.DIRECTOR.toString(),
+                    movieTableModel.isDisplayed(MovieAttribute.DIRECTOR)
+            );
+            this.add(directorCB);
+
+            JCheckBox titleCB = new JCheckBox(
+                    MovieAttribute.TITLE.toString(),
+                    movieTableModel.isDisplayed(MovieAttribute.TITLE)
+            );
+            this.add(titleCB);
+
+            JCheckBox releaseYearCB = new JCheckBox(
+                    MovieAttribute.RELEASE_YEAR.toString(),
+                    movieTableModel.isDisplayed(MovieAttribute.RELEASE_YEAR)
+            );
+            this.add(releaseYearCB);
+
+            JCheckBox certCB = new JCheckBox(
+                    MovieAttribute.CERT.toString(),
+                    movieTableModel.isDisplayed(MovieAttribute.CERT)
+            );
+            this.add(certCB);
+
+            JCheckBox runtimeCB = new JCheckBox(
+                    MovieAttribute.RUNTIME.toString(),
+                    movieTableModel.isDisplayed(MovieAttribute.RUNTIME)
+            );
+            this.add(runtimeCB);
+
+            JCheckBox genresCB = new JCheckBox(
+                    MovieAttribute.GENRES.toString(),
+                    movieTableModel.isDisplayed(MovieAttribute.GENRES)
+            );
+            this.add(genresCB);
+
+            JCheckBox imdbCB = new JCheckBox(
+                    MovieAttribute.IMDB_RATING.toString(),
+                    movieTableModel.isDisplayed(MovieAttribute.IMDB_RATING)
+            );
+            this.add(imdbCB);
+
+            JCheckBox metascoreCB = new JCheckBox(
+                    MovieAttribute.METASCORE.toString(),
+                    movieTableModel.isDisplayed(MovieAttribute.METASCORE)
+            );
+            this.add(metascoreCB);
+
+            JButton okButton = new JButton("OK");
+            okButton.addActionListener(e -> {
+                java.util.List<MovieAttribute> selectedAttr = new ArrayList<>();
+                if (directorCB.isSelected()) selectedAttr.add(MovieAttribute.DIRECTOR);
+                if (titleCB.isSelected()) selectedAttr.add(MovieAttribute.TITLE);
+                if (releaseYearCB.isSelected()) selectedAttr.add(MovieAttribute.RELEASE_YEAR);
+                if (certCB.isSelected()) selectedAttr.add(MovieAttribute.CERT);
+                if (runtimeCB.isSelected()) selectedAttr.add(MovieAttribute.RUNTIME);
+                if (genresCB.isSelected()) selectedAttr.add(MovieAttribute.GENRES);
+                if (imdbCB.isSelected()) selectedAttr.add(MovieAttribute.IMDB_RATING);
+                if (metascoreCB.isSelected()) selectedAttr.add(MovieAttribute.METASCORE);
+
+                movieTableModel.setDisplayedAttributes(selectedAttr.toArray(MovieAttribute[]::new));
+                this.dispose();
+            });
+            this.add(okButton);
+
+            JButton cancelButton = new JButton("Cancel");
+            cancelButton.addActionListener(e -> this.dispose());
+            this.add(cancelButton);
+
             this.pack();
             setLocationRelativeTo(MainFrame.this);
             this.setVisible(true);

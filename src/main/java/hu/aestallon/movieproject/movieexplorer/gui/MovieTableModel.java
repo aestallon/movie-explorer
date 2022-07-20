@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class MovieTableModel extends AbstractTableModel {
 
-    private MovieDao movieDao;
+    private final MovieDao movieDao;
     private List<Movie> storedMovies;
     private List<MovieAttribute> displayedAttributes;
 
@@ -98,5 +98,9 @@ public class MovieTableModel extends AbstractTableModel {
 
     public Movie getMovieAt(int index) {
         return storedMovies.get(index);
+    }
+
+    public boolean isDisplayed(MovieAttribute attribute) {
+        return displayedAttributes.contains(attribute);
     }
 }
